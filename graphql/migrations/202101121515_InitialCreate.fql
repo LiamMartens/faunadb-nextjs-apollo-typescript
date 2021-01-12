@@ -1,0 +1,102 @@
+Let(
+    {
+        index_params: {
+            name: "allTodos",
+            source: Collection("Todo")
+        }
+    },
+    If(
+        Exists(Index("allTodos")),
+        Update(Index("allTodos"), Var("index_params")),
+        CreateIndex(Var("index_params"))
+    )
+)
+
+Let(
+    {
+        index_params: {
+            name: "todosByStatus",
+            source: Collection("Todo"),
+            terms: [
+                { field: ["data", "status"] }
+            ]
+        }
+    },
+    If(
+        Exists(Index("todosByStatus")),
+        Update(Index("todosByStatus"), Var("index_params")),
+        CreateIndex(Var("index_params"))
+    )
+)
+
+Let(
+    {
+        function_params: {
+            name: "todosByStatus",
+            body: Query(
+                Lambda(
+                    ["status", "size", "before", "after"],
+                    Let(
+                        {
+                            match: Match(Index("todosByStatus"), Var("status")),
+                            page: If(
+                            Equals(Var("before"), null),
+                            If(
+                                Equals(Var("after"), null),
+                                Paginate(Var("match"), { size: Var("size") }),
+                                Paginate(Var("match"), { after: Var("after"), size: Var("size") })
+                            ),
+                            Paginate(Var("match"), { before: Var("before"), size: Var("size") })
+                            )
+                        },
+                        Map(Var("page"), Lambda("x", Get(Var("x"))))
+                    )
+                )
+            )
+        }
+    },
+  If(
+    Exists(Function("todosByStatus")),
+    Update(Function("todosByStatus"), Var("function_params")),
+    CreateFunction(Var("function_params"))
+  )
+)
+
+Let(
+  {
+    function_params: {
+      name: "todosByText",
+      body: Query(
+          Lambda(
+            ["text", "size", "before", "after"],
+            Let(
+              {
+                filter: Filter(
+                  Match(Index("allTodos")),
+                  Lambda(
+                    "x",
+                    ContainsStr(LowerCase(Select(["data", "todo"], Get(Var("x")))), LowerCase(Var("text")))
+                  )
+                ),
+                page: If(
+                  Equals(Var("before"), null),
+                  If(
+                    Equals(Var("after"), null),
+                    Paginate(Var("filter"), { size: Var("size") }),
+                    Paginate(Var("filter"), { after: Var("after"), size: Var("size") })
+                  ),
+                  Paginate(Var("filter"), { before: Var("before"), size: Var("size") })
+                )
+              },
+              Map(Var("page"), Lambda("x", Get(Var("x"))))
+            )
+          )
+        )
+    }
+  },
+  If(
+    Exists(Function("todosByText")),
+    Update(Function("todosByText"), Var("function_params")),
+    CreateFunction(Var("function_params"))
+  )
+)

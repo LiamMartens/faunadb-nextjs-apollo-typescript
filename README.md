@@ -1,3 +1,7 @@
+# What is this
+This is the sample Todo app for the article which you can find [here](https://liammartens.medium.com/creating-a-fauna-next-js-typescript-to-do-app-5cfe1fa938e4)
+
+# Next.js
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started

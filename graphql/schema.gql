@@ -1,0 +1,16 @@
+enum TodoStatus {
+    NEW,
+    INPROGRESS,
+    DONE
+}
+
+type Todo {
+    todo: String!
+    status: TodoStatus!
+}
+
+type Query {
+    allTodos: [Todo!]!
+    todosByStatus(status: TodoStatus): [Todo!]! @resolver(paginated: true)
+    todosByText(text: String): [Todo!]! @resolver(paginated: true)
+}
